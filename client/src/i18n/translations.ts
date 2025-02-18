@@ -5,10 +5,14 @@ type ActionMessages = {
   [Actions.Assassinate]: string
   [Actions.Coup]: string
   [Actions.Exchange]: string
+  [Actions.SingleExchange]: string
+  [Actions.Examine]: string
   [Actions.ForeignAid]: string
   [Actions.Income]: string
   [Actions.Steal]: string
   [Actions.Tax]: string
+  [Actions.Convert]: string
+  [Actions.Embezzle]: string
 }
 
 export type Translations = ActionMessages & {
@@ -70,6 +74,7 @@ export type Translations = ActionMessages & {
   [Influences.Captain]: string
   [Influences.Contessa]: string
   [Influences.Duke]: string
+  [Influences.Inquisitor]: string
   inviteLinkCopied: string
   joinExistingGame: string
   joinGame: string
@@ -108,13 +113,18 @@ export type Translations = ActionMessages & {
   rulesChallenge: string
   rulesContents: string
   rulesContessa: string
+  rulesConvert: string
   rulesCoup: string
   rulesDuke: string
+  rulesEmbezzle: string
+  rulesExamine: string
   rulesExchange: string
+  rulesSingleExchange: string
   rulesForeignAid: string
   rulesGoal: string
   rulesIncome: string
   rulesInfluences: string
+  rulesInquistor: string
   rulesLosingAChallenge: string
   rulesLosingInfluence: string
   rulesSetup: string
@@ -128,6 +138,7 @@ export type Translations = ActionMessages & {
   steal2CoinsFromSomeone: string
   system: string
   title: string
+  treasuryReserve: string
   vengefulness: string
   waitingOnOtherPlayers: string
   websocketsConnection: string
@@ -144,10 +155,14 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     [Actions.Assassinate]: 'Assassinate',
     [Actions.Coup]: 'Coup',
     [Actions.Exchange]: 'Exchange',
+    [Actions.SingleExchange]: 'Exchange',
+    [Actions.Examine]: 'Examine',
     [Actions.ForeignAid]: 'Foreign Aid',
     [Actions.Income]: 'Income',
     [Actions.Steal]: 'Steal',
     [Actions.Tax]: 'Tax',
+    [Actions.Convert]: 'Convert',
+    [Actions.Embezzle]: 'Embezzle',
     add: 'Add',
     addAiPlayer: 'Add AI Player',
     addPlayersToStartGame: 'Add at least one more player to start game',
@@ -183,10 +198,14 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
       [Actions.Assassinate]: '{{action[[Assassinate]]}} {{secondaryPlayer}}',
       [Actions.Coup]: '{{action[[Coup]]}} {{secondaryPlayer}}',
       [Actions.Exchange]: '{{action[[Exchange]]}} influences',
+      [Actions.SingleExchange]: '{{action[[Exchange]]}} influences',
       [Actions.ForeignAid]: 'Collect {{action[[Foreign Aid]]}}',
       [Actions.Income]: 'Collect {{action[[Income]]}}',
       [Actions.Steal]: '{{action[[Steal]]}} from {{secondaryPlayer}}',
       [Actions.Tax]: 'Collect {{action}}',
+      [Actions.Examine]: 'Examine {{secondaryPlayer}}',
+      [Actions.Convert]: 'Convert {{secondaryPlayer}}',
+      [Actions.Embezzle]: 'Take coins from {{ treasuryReserve }}',
     },
     [EventMessages.ActionPending]: {
       [Actions.Assassinate]: '{{primaryPlayer}} is trying to {{action[[Assassinate]]}} {{secondaryPlayer}}',
@@ -199,10 +218,14 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
       [Actions.Assassinate]: '{{primaryPlayer}} {{action[[Assassinated]]}} {{secondaryPlayer}}',
       [Actions.Coup]: '{{primaryPlayer}} {{action[[Couped]]}} {{secondaryPlayer}}',
       [Actions.Exchange]: '{{primaryPlayer}} {{action[[Exchanged]]}} influences',
+      [Actions.SingleExchange]: '{{primaryPlayer}} {{action[[Exchanged]]}} influences',
       [Actions.ForeignAid]: '{{primaryPlayer}} received {{action[[Foreign Aid]]}}',
       [Actions.Income]: '{{primaryPlayer}} collected {{action[[Income]]}}',
       [Actions.Steal]: '{{primaryPlayer}} {{action[[Stole]]}} from {{secondaryPlayer}}',
       [Actions.Tax]: '{{primaryPlayer}} collected {{action[[Tax]]}}',
+      [Actions.Embezzle]: '{{primaryPlayer}} collected from {{treasuryReserve}}',
+      [Actions.Convert]: '{{primaryPlayer}} converted {{secondaryPlayer}}',
+      [Actions.Examine]: '{{primaryPlayer}} looked at card from {{secondaryPlayer}}',
     },
     [EventMessages.BlockFailed]: '{{primaryPlayer}} failed to block {{secondaryPlayer}}',
     [EventMessages.BlockPending]: '{{primaryPlayer}} is trying to block {{secondaryPlayer}} as {{primaryInfluence}}',
@@ -226,6 +249,7 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     [Influences.Captain]: 'Captain',
     [Influences.Contessa]: 'Contessa',
     [Influences.Duke]: 'Duke',
+    [Influences.Inquisitor]: 'Inquisitor',
     inviteLinkCopied: 'Invite Link Copied',
     joinExistingGame: 'Join Existing Game',
     joinGame: 'Join Game',
@@ -264,13 +288,18 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     rulesChallenge: 'When the acting player declares their action, any other player may Challenge their right to take the action. They are saying "I don\'t believe you have the proper character to do that." The acting player now must prove they have the power to take the action or lose the Challenge. If they have the right character, they reveal it and place the revealed card back in the deck. They then shuffle the deck and draw a new card. The Challenging player has lost the Challenge. If they do not have the proper character, they lose the Challenge.',
     rulesContents: 'Deck of influence cards, bank of coins.',
     rulesContessa: 'Can Block assassination attempts.',
+    rulesConvert: 'Change Allegiance. Place 1 coin for yourself or two for someone else into the Treasury Reserve',
     rulesCoup: 'Costs seven coins. Cause a player to give up an Influence card. Cannot be Challenged or Blocked. If you start your turn with 10+ coins, you must take this action.',
     rulesDuke: 'Can Tax and Block Foreign Aid.',
+    rulesEmbezzle: 'Take all coins from Treasury Reserve. Cannot be Challenged or Blocked. Cannot Embezzle with Duke',
+    rulesExamine: 'Choose a player look at one card. May force exchange. Cannot be Blocked',
     rulesExchange: 'Draw two Influence cards from the deck, look at them and mix them with your current Influence cards. Place two cards back in the deck and shuffle the deck. Can be Challenged. Cannot be Blocked.',
+    rulesSingleExchange: 'Draw an Influence card from the deck, look at it and mix it with your current Influence cards. Place a card back in the deck and shuffle the deck. Can be Challenged. Cannot be Blocked.',
     rulesForeignAid: 'Take two coins from the bank. Cannot be Challenged. Can be Blocked by the Duke.',
     rulesGoal: 'To be the only player with any influence cards left.',
     rulesIncome: 'Take one coin from the bank. Cannot be Challenged or Blocked.',
     rulesInfluences: 'There are five different characters in the influence deck (three of each character).',
+    rulesInquistor: 'Can Exchange and Examine',
     rulesLosingAChallenge: 'Any player who loses a Challenge must turn one of their Influence cards face up for all to see. If that is their last Influence card, they are out of the game.',
     rulesLosingInfluence: 'Any time a player loses an Influence card, they choose which of their cards to reveal.',
     rulesSetup: 'Shuffle the cards and deal two to each player. Players should look at their cards but keep them hidden from everyone else. Each player takes two coins from the bank as their starting wealth. In a game with only two players, the starting player begins the game with one coin instead of two.',
@@ -283,6 +312,7 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     startingPlayerBeginsWith1Coin: '2 player game, starting player will begin with 1 coin',
     steal2CoinsFromSomeone: 'Steal 2 coins from someone',
     system: 'System',
+    treasuryReserve: 'Treasury Reserve',
     title: 'Coup',
     vengefulness: 'Vengefulness',
     waitingOnOtherPlayers: 'Waiting on Other Players',
@@ -302,6 +332,10 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     [Actions.Income]: 'Renda',
     [Actions.Steal]: 'Roubar',
     [Actions.Tax]: 'Imposto',
+    [Actions.Convert]: '',
+    [Actions.SingleExchange]: 'Trocar',
+    [Actions.Embezzle]: '',
+    [Actions.Examine]: '',
     add: 'Adicionar',
     addAiPlayer: 'Adicionar jogador AI',
     addPlayersToStartGame: 'Adicione pelo menos mais um jogador para iniciar o jogo',
@@ -337,14 +371,19 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
       [Actions.Assassinate]: '{{action[[Assassinar]]}} {{secondaryPlayer}}',
       [Actions.Coup]: '{{action[[Golpear]]}} {{secondaryPlayer}}',
       [Actions.Exchange]: '{{action[[Trocar]]}} influências',
+      [Actions.SingleExchange]: '{{action[[Trocar]]}} influências',
       [Actions.ForeignAid]: 'Receber {{action[[ajuda externa]]}}',
       [Actions.Income]: 'Coleter {{action[[renda]]}}',
       [Actions.Steal]: '{{action[[Roubar]]}} de {{secondaryPlayer}}',
       [Actions.Tax]: 'Cobrar {{action[[imposto]]}}',
+      [Actions.Embezzle]: '',
+      [Actions.Examine]: '',
+      [Actions.Convert]: '',
     },
     [EventMessages.ActionPending]: {
       [Actions.Assassinate]: '{{primaryPlayer}} está tentando {{action[[assassinar]]}} {{secondaryPlayer}}',
       [Actions.Exchange]: '{{primaryPlayer}} está tentando {{action[[trocar]]}} influências',
+      [Actions.SingleExchange]: '{{primaryPlayer}} está tentando {{action[[trocar]]}} influências',
       [Actions.ForeignAid]: '{{primaryPlayer}} está tentando receber {{action[[ajuda externa]]}}',
       [Actions.Steal]: '{{primaryPlayer}} está tentando {{action[[roubar]]}} de {{secondaryPlayer}}',
       [Actions.Tax]: '{{primaryPlayer}} está tentando cobrar {{action[[imposto]]}}',
@@ -353,10 +392,14 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
       [Actions.Assassinate]: '{{primaryPlayer}} {{action[[assassinou]]}} {{secondaryPlayer}}',
       [Actions.Coup]: '{{primaryPlayer}} {{action[[golpeou]]}} {{secondaryPlayer}}',
       [Actions.Exchange]: '{{primaryPlayer}} {{action[[trocou]]}} influências',
+      [Actions.SingleExchange]: '{{primaryPlayer}} {{action[[trocou]]}} influências',
       [Actions.ForeignAid]: '{{primaryPlayer}} recebeu {{action[[ajuda externa]]}}',
       [Actions.Income]: '{{primaryPlayer}} coletou {{action[[renda]]}}',
       [Actions.Steal]: '{{primaryPlayer}} {{action[[roubou]]}} de {{secondaryPlayer}}',
       [Actions.Tax]: '{{primaryPlayer}} coubrou {{action[[imposto]]}}',
+      [Actions.Embezzle]: '',
+      [Actions.Examine]: '',
+      [Actions.Convert]: '',
     },
     [EventMessages.BlockFailed]: '{{primaryPlayer}} não conseguiu bloquear {{secondaryPlayer}}',
     [EventMessages.BlockPending]: '{{primaryPlayer}} está tentando bloquear {{secondaryPlayer}} como {{primaryInfluence}}',
@@ -380,6 +423,7 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     [Influences.Captain]: 'Capitão',
     [Influences.Contessa]: 'Contessa',
     [Influences.Duke]: 'Duque',
+    [Influences.Inquisitor]: '',
     inviteLinkCopied: 'Link de convite copiado',
     joinExistingGame: 'Participe de um jogo',
     joinGame: 'Entre no jogo',
@@ -418,13 +462,18 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     rulesChallenge: 'Quando o jogador agente declara sua ação, qualquer outro jogador pode contestar seu direito de realizar a ação. Eles estão dizendo: “Não acredito que você tenha o caráter adequado para fazer isso”. O jogador atuante agora deve provar que tem o poder de realizar a ação ou perderá o Desafio. Se tiverem o personagem certo, eles o revelam e colocam a carta revelada de volta no baralho. Eles então embaralham o baralho e compram uma nova carta. O jogador Desafiador perdeu o Desafio. Se não tiverem o caráter adequado, perdem o Desafio.',
     rulesContents: 'Baralho de cartas de influência, banco de moedas.',
     rulesContessa: 'Pode bloquear tentativas de assassinato.',
+    rulesConvert: '',
     rulesCoup: 'Custa sete moedas. Faça com que um jogador descarte uma carta de Influência. Não pode ser desafiado ou bloqueado. Se você começar seu turno com 10 moedas ou mais, você será forçado a realizar esta ação.',
     rulesDuke: 'Pode cobrar impostos e bloquear ajuda externa.',
+    rulesEmbezzle: '',
+    rulesExamine: '',
     rulesExchange: 'Pegue duas cartas de Influência do baralho, observe-as e misture-as com suas cartas de Influência atuais. Coloque duas cartas de volta no baralho e embaralhe-o. Pode ser desafiado. Não pode ser bloqueado.',
+    rulesSingleExchange: 'Pegue duas cartas de Influência do baralho, observe-as e misture-as com suas cartas de Influência atuais. Coloque duas cartas de volta no baralho e embaralhe-o. Pode ser desafiado. Não pode ser bloqueado.',
     rulesForeignAid: 'Pegue duas moedas do banco. Não pode ser desafiado. Pode ser bloqueado pelo duque.',
     rulesGoal: 'Ser o único jogador com cartas de influência restantes.',
     rulesIncome: 'Pegue uma moeda do banco. Não pode ser desafiado ou bloqueado.',
     rulesInfluences: 'Existem cinco personagens diferentes no baralho de influência (três de cada personagem).',
+    rulesInquistor: '',
     rulesLosingAChallenge: 'Qualquer jogador que perder um Desafio deve virar uma de suas cartas de Influência para que todos possam ver. Se esta for a última carta de Influência, eles estão fora do jogo.',
     rulesLosingInfluence: 'Sempre que um jogador perde uma carta de Influência, ele escolhe qual das suas cartas revelar.',
     rulesSetup: 'Embaralhe as cartas e distribua duas para cada jogador. Os jogadores devem olhar para as suas cartas, mas mantê-las escondidas de todos os outros. Cada jogador pega duas moedas do banco como riqueza inicial. Num jogo com apenas dois jogadores, o jogador inicial começa o jogo com uma moeda em vez de duas.',
@@ -438,6 +487,7 @@ const translations: { [key in AvailableLanguageCode]: Translations } = {
     steal2CoinsFromSomeone: 'Rouba 2 moedas de alguém',
     system: 'Sistema',
     title: 'Golpe',
+    treasuryReserve: '',
     vengefulness: 'Vingança',
     waitingOnOtherPlayers: 'Esperando por outros jogadores',
     websocketsConnection: 'Conexão WebSockets',
