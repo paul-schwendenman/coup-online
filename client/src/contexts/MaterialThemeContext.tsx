@@ -84,6 +84,7 @@ export function MaterialThemeContextProvider({ children }: { children: ReactNode
 
     const influenceColors = {
       [Influences.Assassin]: isLightMode ? '#7A0000' : '#B23535',
+      [Influences.Inquisitor]: isLightMode ? '#3D6600' : '#78A831',
       [Influences.Contessa]: isLightMode ? '#9B6000' : '#C38E3A',
       [Influences.Captain]: isLightMode ? '#00338A' : '#3868BA',
       [Influences.Ambassador]: isLightMode ? '#3D6600' : '#78A831',
@@ -94,8 +95,12 @@ export function MaterialThemeContextProvider({ children }: { children: ReactNode
       [Actions.Assassinate]: influenceColors[Influences.Assassin],
       [Actions.Coup]: primaryColor,
       [Actions.Exchange]: influenceColors[Influences.Ambassador],
+      [Actions.SingleExchange]: influenceColors[Influences.Inquisitor],
+      [Actions.Examine]: influenceColors[Influences.Inquisitor],
       [Actions.ForeignAid]: primaryColor,
       [Actions.Income]: primaryColor,
+      [Actions.Embezzle]: primaryColor,
+      [Actions.Convert]: primaryColor,
       [Actions.Steal]: influenceColors[Influences.Captain],
       [Actions.Tax]: influenceColors[Influences.Duke]
     }
