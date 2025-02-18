@@ -3,7 +3,8 @@ export enum Influences {
   Contessa = 'Contessa',
   Captain = 'Captain',
   Ambassador = 'Ambassador',
-  Duke = 'Duke'
+  Duke = 'Duke',
+  Inquisitor = 'Inquisitor'
 }
 
 export enum Actions {
@@ -13,7 +14,11 @@ export enum Actions {
   Tax = 'Tax',
   ForeignAid = 'Foreign Aid',
   Income = 'Income',
-  Exchange = 'Exchange'
+  Exchange = 'Exchange',
+  SingleExchange = 'EExchange',
+  Examine = 'Examine',
+  Convert = 'Convert',
+  Embezzle = 'Embezzle'
 }
 
 export enum PlayerActions {
@@ -42,8 +47,9 @@ export enum ServerEvents {
 
 export const InfluenceAttributes: {
   [influence in Influences]: {
-    legalAction?: Actions
+    legalAction?: Actions | Actions[]
     legalBlock?: Actions
+    illegalAction?: Actions
   }
 } = {
   [Influences.Assassin]: {
@@ -62,7 +68,12 @@ export const InfluenceAttributes: {
   },
   [Influences.Duke]: {
     legalAction: Actions.Tax,
-    legalBlock: Actions.ForeignAid
+    legalBlock: Actions.ForeignAid,
+    illegalAction: Actions.Embezzle
+  },
+  [Influences.Inquisitor]: {
+    legalAction: [Actions.SingleExchange, Actions.Examine],
+    legalBlock: Actions.Steal
   }
 }
 
@@ -115,6 +126,28 @@ export const ActionAttributes: {
     challengeable: true,
     influenceRequired: Influences.Ambassador,
     requiresTarget: false
+  },
+  [Actions.SingleExchange]: {
+    blockable: false,
+    challengeable: true,
+    influenceRequired: Influences.Inquisitor,
+    requiresTarget: false
+  },
+  [Actions.Examine]: {
+    blockable: false,
+    challengeable: true,
+    influenceRequired: Influences.Inquisitor,
+    requiresTarget: true
+  },
+  [Actions.Embezzle]: {
+    blockable: false,
+    challengeable: false,
+    requiresTarget: false
+  },
+  [Actions.Convert]: {
+    blockable: false,
+    challengeable: false,
+    requiresTarget: true
   }
 }
 
