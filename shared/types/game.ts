@@ -170,6 +170,17 @@ export type Player = {
   }
 }
 
+export type Spectator = {
+  id: string
+  name: string
+  color: string
+}
+
+export type PublicSpectator = {
+  name: string
+  color: string
+}
+
 export type PublicPlayer = Omit<Player, 'id' | 'influences'> & {
   influenceCount: number
 }
@@ -185,6 +196,7 @@ export type GameState = {
   isStarted: boolean
   availablePlayerColors: string[]
   players: Player[]
+  spectators: Spectator[]
   pendingAction?: {
     targetPlayer?: string
     action: Actions
@@ -232,6 +244,8 @@ export type PublicGameState = Pick<GameState,
   'turnPlayer'
 >> & {
   players: PublicPlayer[]
+  spectators: PublicSpectator[]
   selfPlayer?: Player
+  isSpectator?: boolean
   deckCount: number
 }

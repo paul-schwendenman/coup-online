@@ -127,6 +127,7 @@ const getNewGameState = (roomId: string, settings: GameSettings): GameState => (
   roomId,
   availablePlayerColors: shuffle(['#13CC63', '#3399dd', '#FD6C33', '#00CCDD', '#FFC303', '#FA0088']),
   players: [],
+  spectators: [],
   deck: shuffle(buildGameDeck()),
   pendingInfluenceLoss: {},
   isStarted: false,
@@ -205,7 +206,10 @@ export const resetGame = async (roomId: string) => {
     deadInfluences: [],
     grudges: {}
   }))
+  
   newGameState.availablePlayerColors = oldGameState.availablePlayerColors
+  newGameState.spectators = oldGameState.spectators
+  
   await createGameState(roomId, newGameState)
 }
 
@@ -278,4 +282,24 @@ export const removeClaimedInfluence = (player: Player, influence?: Influences) =
   }
 
   player.claimedInfluences = player.claimedInfluences.filter((i) => i !== influence)
+}
+
+export const addSpectatorToGame = ({
+  state,
+  playerId,
+  playerName,
+}: {
+  state: GameState
+  playerId: string
+  playerName: string
+}) => {
+  state.spectators.push({
+    id: playerId,
+    name: playerName,
+    color: '#888888' // Gray color for spectators
+  })
+}
+
+export const removeSpectatorFromGame = (state: GameState, playerId: string) => {
+  state.spectators = state.spectators.filter(spectator => spectator.id !== playerId)
 }

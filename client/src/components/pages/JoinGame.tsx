@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react"
 import { Analytics } from '@vercel/analytics/react'
-import { Box, Breadcrumbs, Button, Grid2, TextField, Typography } from "@mui/material"
-import { AccountCircle, Group } from "@mui/icons-material"
+import { Box, Breadcrumbs, Button, Grid2, TextField, Typography, FormControlLabel, Checkbox } from "@mui/material"
+import { AccountCircle, Group, VisibilityOutlined, VisibilityOffOutlined } from "@mui/icons-material"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { getPlayerId } from "../../helpers/players"
 import { PlayerActions, PublicGameState } from '@shared'
@@ -12,6 +12,7 @@ function JoinGame() {
   const [searchParams] = useSearchParams()
   const [roomId, setRoomId] = useState(searchParams.get('roomId') ?? '')
   const [playerName, setPlayerName] = useState('')
+  const [isSpectator, setIsSpectator] = useState(false)
   const navigate = useNavigate()
   const { t } = useTranslationContext()
 
@@ -20,7 +21,7 @@ function JoinGame() {
   }, [navigate])
 
   const { trigger, isMutating, error } = useGameMutation<{
-    roomId: string, playerId: string, playerName: string
+    roomId: string, playerId: string, playerName: string, isSpectator: boolean
   }>({ action: PlayerActions.joinGame, callback: navigateToRoom })
 
   return (
@@ -43,7 +44,8 @@ function JoinGame() {
           trigger({
             roomId: roomId.trim(),
             playerId: getPlayerId(),
-            playerName: playerName.trim()
+            playerName: playerName.trim(),
+            isSpectator
           })
         }}
       >
@@ -75,6 +77,21 @@ function JoinGame() {
                 label={t('whatIsYourName')}
                 variant="standard"
                 required
+              />
+            </Box>
+          </Grid2>
+          <Grid2>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isSpectator}
+                    onChange={(e) => setIsSpectator(e.target.checked)}
+                    icon={<VisibilityOffOutlined />}
+                    checkedIcon={<VisibilityOutlined />}
+                  />
+                }
+                label={isSpectator ? "Join as a spectator" : "Join as a player"}
               />
             </Box>
           </Grid2>

@@ -112,14 +112,19 @@ const eventHandlers: {
         const roomId: string = req.body.roomId
         const playerId: string = req.body.playerId
         const playerName: string = req.body.playerName.trim()
+        const isSpectator: boolean = req.body.isSpectator
+        return { roomId, playerId, playerName, isSpectator }
         return { roomId, playerId, playerName }
+        const isSpectator: boolean = req.body.isSpectator
+        return { roomId, playerId, playerName, isSpectator }
       },
       validator: validateExpressBody
     },
     joiSchema: Joi.object().keys({
       roomId: Joi.string().required(),
       playerId: Joi.string().required(),
-      playerName: playerNameRule
+      playerName: playerNameRule,
+      isSpectator: Joi.boolean()
     })
   },
   [PlayerActions.addAiPlayer]: {

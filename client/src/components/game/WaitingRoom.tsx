@@ -29,6 +29,7 @@ function WaitingRoom() {
   }
 
   const inviteLink = `${window.location.origin}/join-game?roomId=${gameState.roomId}`
+  const hasSpectators = gameState.spectators && gameState.spectators.length > 0
 
   return (
     <>
@@ -36,6 +37,13 @@ function WaitingRoom() {
         <Grid2 sx={{ p: 2, mt: 4 }}>
           <Players inWaitingRoom />
         </Grid2>
+        {hasSpectators && (
+          <Grid2 sx={{ p: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontStyle: 'italic' }}>
+              Spectators: {gameState.spectators?.map(s => s.name).join(', ')}
+            </Typography>
+          </Grid2>
+        )}
       </Grid2>
       <Typography variant="h5" m={3}>
         {t('room')}
@@ -96,7 +104,7 @@ function WaitingRoom() {
                 playerId: getPlayerId()
               })
             }}
-            disabled={gameState.players.length < 2 || isMutating}
+            disabled={gameState.players.length < 2 || isMutating || !!gameState.isSpectator}
           >
             {(t('startGame'))}
           </Button>

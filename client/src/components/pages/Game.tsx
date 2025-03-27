@@ -11,7 +11,7 @@ function Game() {
 
   return (
     <>
-      {gameState && !gameState.selfPlayer && (
+      {gameState && !gameState.selfPlayer && !gameState.isSpectator && (
         <Grid2 mt={2} container spacing={2} direction="column">
           <Grid2>
             <Typography variant="h6" my={3}>
@@ -27,10 +27,10 @@ function Game() {
           </Grid2>
         </Grid2>
       )}
-      {gameState && gameState.isStarted && gameState.selfPlayer && (
+      {gameState && gameState.isStarted && (gameState.selfPlayer || gameState.isSpectator) && (
         <GameBoard />
       )}
-      {gameState && !gameState.isStarted && gameState.selfPlayer && (
+      {gameState && !gameState.isStarted && (gameState.selfPlayer || gameState.isSpectator) && (
         <WaitingRoom />
       )}
     </>

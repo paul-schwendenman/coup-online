@@ -1,5 +1,5 @@
 import { isSameState } from '../../../shared/helpers/state'
-import { EventMessage, GameState, Influences, Player, PublicGameState, PublicPlayer } from '../../../shared/types/game'
+import { EventMessage, GameState, Influences, Player, PublicGameState, PublicPlayer, PublicSpectator } from '../../../shared/types/game'
 import { shuffle } from './array'
 import { GameMutationInputError } from './errors'
 import { getValue, setValue } from './storage'
@@ -48,6 +48,13 @@ export const getPublicGameState = ({ gameState, playerId }: {
       selfPlayer = player
     }
   })
+  
+  const publicSpectators: PublicSpectator[] = gameState.spectators.map(spectator => ({
+    name: spectator.name,
+    color: spectator.color
+  }))
+  
+  const isSpectator = gameState.spectators.some(spectator => spectator.id === playerId)
 
   return {
     eventLogs: gameState.eventLogs,
@@ -55,9 +62,11 @@ export const getPublicGameState = ({ gameState, playerId }: {
     isStarted: gameState.isStarted,
     pendingInfluenceLoss: gameState.pendingInfluenceLoss,
     players: publicPlayers,
+    spectators: publicSpectators,
     roomId: gameState.roomId,
     deckCount: gameState.deck.length,
     ...(selfPlayer && { selfPlayer }),
+    ...(isSpectator && { isSpectator }),
     ...(gameState.pendingAction && { pendingAction: gameState.pendingAction }),
     ...(gameState.pendingActionChallenge && { pendingActionChallenge: gameState.pendingActionChallenge }),
     ...(gameState.pendingBlock && { pendingBlock: gameState.pendingBlock }),
@@ -98,6 +107,9 @@ export const validateGameState = (state: GameState) => {
   if (state.pendingBlock?.pendingPlayers?.length === 0
     && !state.pendingBlockChallenge) {
     throw new GameMutationInputError('Everyone has passed but the block is still pending')
+  }
+  if (!state.spectators) {
+    state.spectators = []
   }
 }
 

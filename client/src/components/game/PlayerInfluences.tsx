@@ -5,7 +5,7 @@ import InfluenceCard from "./InfluenceCard"
 function PlayerInfluences() {
   const { gameState } = useGameStateContext()
 
-  if (!gameState?.selfPlayer?.influences?.length) {
+  if (!gameState?.selfPlayer?.influences?.length || gameState.isSpectator) {
     return null
   }
 

@@ -1,4 +1,5 @@
-import { Box, Grid2, Tooltip, Typography, useTheme } from "@mui/material"
+import { Box, Grid2, Tooltip, Typography, useTheme, Chip } from "@mui/material"
+import { VisibilityOutlined } from "@mui/icons-material"
 import PlayerInfluences from "../game/PlayerInfluences"
 import Players from "../game/Players"
 import EventLog from "./EventLog"
@@ -16,7 +17,11 @@ function GameBoard() {
   const { t } = useTranslationContext()
   const theme = useTheme()
 
-  if (!gameState?.selfPlayer) {
+  if (!gameState) {
+    return null
+  }
+
+  if (!gameState.selfPlayer && !gameState.isSpectator) {
     return null
   }
 
@@ -25,6 +30,7 @@ function GameBoard() {
   )
   const playersLeft = gameState.players.filter(({ influenceCount }) => influenceCount)
   const gameIsOver = playersLeft.length === 1
+  const hasSpectators = gameState.spectators && gameState.spectators.length > 0
 
   const centeredOnSmallScreen = {
     justifyContent: 'center',
@@ -42,6 +48,16 @@ function GameBoard() {
         p={2}
         size={{ xs: 12, sm: 12, md: 9, lg: 6 }}
       >
+        {gameState.isSpectator && (
+          <Grid2 container justifyContent="center" sx={{ mb: 3 }}>
+            <Chip
+              icon={<VisibilityOutlined />}
+              label="Spectator Mode"
+              color="primary"
+              variant="outlined"
+            />
+          </Grid2>
+        )}
         {gameIsOver && (
           <Grid2 sx={{ m: 5 }}>
             <Victory player={playersLeft[0]} />
@@ -52,7 +68,7 @@ function GameBoard() {
             <PlayAgain />
           </Grid2>
         )}
-        {!gameState.selfPlayer.influences.length && (
+        {gameState.selfPlayer && !gameState.selfPlayer.influences.length && (
           <Grid2>
             <SnarkyDeadComment />
           </Grid2>
@@ -67,7 +83,7 @@ function GameBoard() {
             </Typography>
           </Box>
         )}
-        {!!gameState?.selfPlayer?.influences?.length && (
+        {gameState.selfPlayer && !!gameState.selfPlayer.influences?.length && (
           <Grid2 container justifyContent="center" my={4}>
             <PlayerInfluences />
           </Grid2>
@@ -75,7 +91,16 @@ function GameBoard() {
         <Grid2 container justifyContent="center" sx={{ my: 2 }}>
           <Players />
         </Grid2>
-        {!gameIsOver && (
+        {hasSpectators && (
+          <Grid2 container justifyContent="center" sx={{ mt: 4, mb: 2 }}>
+            <Grid2>
+              <Typography variant="subtitle1" sx={{ fontStyle: 'italic' }}>
+                Spectators: {gameState.spectators?.map(s => s.name).join(', ')}
+              </Typography>
+            </Grid2>
+          </Grid2>
+        )}
+        {!gameIsOver && !gameState.isSpectator && (
           <Grid2 container justifyContent="center">
             <Grid2 sx={{ p: 2 }}>
               <PlayerDecision />
