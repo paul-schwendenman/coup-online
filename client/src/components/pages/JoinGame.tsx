@@ -4,7 +4,7 @@ import { Box, Breadcrumbs, Button, Grid2, TextField, Typography, FormControlLabe
 import { AccountCircle, Group, VisibilityOutlined, VisibilityOffOutlined } from "@mui/icons-material"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { getPlayerId } from "../../helpers/players"
-import { PlayerActions, PublicGameState } from '@shared'
+import { PlayerActions, DehydratedPublicGameState } from '@shared'
 import useGameMutation from "../../hooks/useGameMutation"
 import { useTranslationContext } from "../../contexts/TranslationsContext"
 
@@ -16,7 +16,7 @@ function JoinGame() {
   const navigate = useNavigate()
   const { t } = useTranslationContext()
 
-  const navigateToRoom = useCallback((gameState: PublicGameState) => {
+  const navigateToRoom = useCallback((gameState: DehydratedPublicGameState) => {
     navigate(`/game?roomId=${gameState.roomId}`)
   }, [navigate])
 

@@ -92,6 +92,7 @@ export const processPendingAction = (state: GameState) => {
     promptPlayerToLoseInfluence(state, targetPlayer.name)
   } else if (state.pendingAction.action === Actions.Exchange) {
     removeClaimedInfluence(actionPlayer)
+    removeUnclaimedInfluence(actionPlayer)
     actionPlayer.influences.push(drawCardFromDeck(state), drawCardFromDeck(state))
     state.deck = shuffle(state.deck)
     promptPlayerToLoseInfluence(state, actionPlayer.name, true)
@@ -132,6 +133,7 @@ const getNewGameState = (roomId: string, settings: GameSettings): GameState => (
   pendingInfluenceLoss: {},
   isStarted: false,
   eventLogs: [],
+  chatMessages: [],
   lastEventTimestamp: new Date(),
   turn: 1,
   settings
@@ -156,7 +158,8 @@ export const addPlayerToGame = ({
     coins: 2,
     influences: Array.from({ length: 2 }, () => drawCardFromDeck(state)),
     deadInfluences: [],
-    claimedInfluences: [],
+    claimedInfluences: new Set(),
+    unclaimedInfluences: new Set(),
     color: state.availablePlayerColors.shift()!,
     ai,
     grudges: {},
@@ -202,14 +205,15 @@ export const resetGame = async (roomId: string) => {
     ...player,
     coins: 2,
     influences: Array.from({ length: 2 }, () => drawCardFromDeck(newGameState)),
-    claimedInfluences: [],
+    claimedInfluences: new Set(),
+    unclaimedInfluences: new Set(),
     deadInfluences: [],
     grudges: {}
   }))
   
   newGameState.availablePlayerColors = oldGameState.availablePlayerColors
   newGameState.spectators = oldGameState.spectators
-  
+  newGameState.chatMessages = oldGameState.chatMessages
   await createGameState(roomId, newGameState)
 }
 
@@ -270,18 +274,27 @@ export const holdGrudge = ({ state, offended, offender, weight }: {
 }
 
 export const addClaimedInfluence = (player: Player, influence: Influences) => {
-  if (!player.claimedInfluences.some((i) => i === influence)) {
-    player.claimedInfluences.push(influence)
-  }
+  player.claimedInfluences.add(influence)
 }
 
 export const removeClaimedInfluence = (player: Player, influence?: Influences) => {
-  if (!influence) {
-    player.claimedInfluences = []
-    return
+  if (influence) {
+    player.claimedInfluences.delete(influence)
+  } else {
+    player.claimedInfluences.clear()
   }
+}
 
-  player.claimedInfluences = player.claimedInfluences.filter((i) => i !== influence)
+export const addUnclaimedInfluence = (player: Player, influence: Influences) => {
+  player.unclaimedInfluences.add(influence)
+}
+
+export const removeUnclaimedInfluence = (player: Player, influence?: Influences) => {
+  if (influence) {
+    player.unclaimedInfluences.delete(influence)
+  } else {
+    player.unclaimedInfluences.clear()
+  }
 }
 
 export const addSpectatorToGame = ({

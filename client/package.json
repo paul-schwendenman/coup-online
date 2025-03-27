@@ -5,26 +5,26 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@fontsource/roboto": "^5.1.1",
-    "@mui/icons-material": "^6.4.4",
-    "@mui/material": "^6.4.6",
+    "@fontsource/roboto": "^5.2.5",
+    "@mui/icons-material": "^6.4.7",
+    "@mui/material": "^6.4.8",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.13.9",
-    "@types/react": "^19.0.10",
+    "@types/node": "^22.13.13",
+    "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "@vercel/analytics": "^1.5.0",
     "colord": "^2.9.3",
-    "eslint": "^9.21.0",
+    "eslint": "^9.22.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router": "^7.2.0",
+    "react-router": "^7.4.0",
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.8.1",
-    "swr": "^2.3.2",
+    "swr": "^2.3.3",
     "typescript": "^5.7.2",
     "web-vitals": "^4.2.4"
   },
@@ -55,11 +55,13 @@
     ]
   },
   "devDependencies": {
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.4",
     "@shared": "../shared",
     "@types/chance": "^1.1.6",
     "chance": "^1.1.12",
-    "cypress": "^14.1.0",
+    "cypress": "^14.2.0",
+    "esbuild": "^0.25.1",
     "globals": "^16.0.0",
-    "typescript-eslint": "^8.24.1"
+    "typescript-eslint": "^8.26.1"
   }
 }

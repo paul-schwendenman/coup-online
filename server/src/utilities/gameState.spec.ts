@@ -1,10 +1,11 @@
 import { Chance } from "chance"
 import { drawCardFromDeck, getGameState, getPublicGameState, logEvent, mutateGameState, validateGameState } from "./gameState"
-import { Actions, EventMessages, GameState, Influences, PublicGameState } from '../../../shared/types/game'
+import { Actions, EventMessages, GameState, Influences, Player, PublicGameState } from '../../../shared/types/game'
 import { getValue, setValue } from "./storage"
 import { shuffle } from "./array"
 import { compressString, decompressString } from "./compression"
 import { getCurrentTimestamp } from "./time"
+import { dehydrateGameState } from "../../../shared/helpers/state"
 
 jest.mock("./storage")
 jest.mock("./compression")
@@ -17,14 +18,15 @@ const getCurrentTimestampMock = jest.mocked(getCurrentTimestamp)
 
 const chance = new Chance()
 
-const getRandomPlayers = (state: GameState, count?: number) =>
+const getRandomPlayers = (state: GameState, count?: number): Player[] =>
   chance.n(() => ({
     id: chance.string(),
     name: chance.string(),
     color: chance.color(),
     coins: 2,
     influences: [...Array.from({ length: 2 }, () => drawCardFromDeck(state))],
-    claimedInfluences: [],
+    claimedInfluences: new Set(),
+    unclaimedInfluences: new Set(),
     deadInfluences: [],
     ai: false,
     grudges: {}
@@ -35,6 +37,7 @@ const getRandomGameState = ({ playersCount }: { playersCount?: number } = {}) =>
     deck: shuffle(Object.values(Influences)
       .flatMap((influence) => Array.from({ length: 3 }, () => influence))),
     eventLogs: [],
+    chatMessages: [],
     lastEventTimestamp: chance.date(),
     isStarted: chance.bool(),
     availablePlayerColors: chance.n(chance.color, 6),
@@ -64,7 +67,7 @@ describe('gameState', () => {
       const gameState = getRandomGameState()
       const compressedStateString = 'some compressed base64'
       getValueMock.mockResolvedValue(compressedStateString)
-      decompressStringMock.mockReturnValue(JSON.stringify(gameState))
+      decompressStringMock.mockReturnValue(JSON.stringify(dehydrateGameState(gameState)))
 
       expect(await getGameState(roomId)).toEqual(gameState)
       expect(decompressStringMock).toHaveBeenCalledTimes(1)
@@ -81,8 +84,10 @@ describe('gameState', () => {
 
       const publicGameState: PublicGameState = {
         eventLogs: gameState.eventLogs,
+        chatMessages: gameState.chatMessages,
         lastEventTimestamp: gameState.lastEventTimestamp,
         isStarted: gameState.isStarted,
+        turn: gameState.turn,
         pendingInfluenceLoss: gameState.pendingInfluenceLoss,
         roomId: gameState.roomId,
         deckCount: 15 - gameState.players.length * 2,
@@ -93,6 +98,7 @@ describe('gameState', () => {
           coins: selfPlayer.coins,
           influences: selfPlayer.influences,
           claimedInfluences: selfPlayer.claimedInfluences,
+          unclaimedInfluences: selfPlayer.unclaimedInfluences,
           deadInfluences: selfPlayer.deadInfluences,
           ai: selfPlayer.ai,
           grudges: selfPlayer.grudges
@@ -103,6 +109,7 @@ describe('gameState', () => {
           coins: player.coins,
           influenceCount: player.influences.length,
           claimedInfluences: player.claimedInfluences,
+          unclaimedInfluences: player.unclaimedInfluences,
           deadInfluences: player.deadInfluences,
           ai: player.ai,
           grudges: player.grudges
@@ -135,7 +142,7 @@ describe('gameState', () => {
     it('should update storage with new state', async () => {
       const gameState = getRandomGameState()
       const compressedStateString = 'some compressed base64'
-      getValueMock.mockResolvedValue(JSON.stringify(gameState))
+      getValueMock.mockResolvedValue(JSON.stringify(dehydrateGameState(gameState)))
       compressStringMock.mockReturnValue(compressedStateString)
 
       getCurrentTimestampMock.mockReturnValue(new Date(1, 22, 2020))
@@ -144,14 +151,9 @@ describe('gameState', () => {
         state.players[0].coins -= 1
       })
 
-      const expectedState = {
-        ...gameState,
-        lastEventTimestamp: new Date(1, 22, 2020).toISOString(),
-        players: [
-          { ...gameState.players[0], coins: gameState.players[0].coins - 1 },
-          ...gameState.players.slice(1)
-        ]
-      }
+      const expectedState = dehydrateGameState(gameState)
+      expectedState.players[0].coins -= 1
+      expectedState.lastEventTimestamp = new Date(1, 22, 2020).toISOString()
 
       const actualStateString = compressStringMock.mock.calls[0][0]
 
@@ -165,11 +167,11 @@ describe('gameState', () => {
     it('should not update storage if state unchanged', async () => {
       const gameState = getRandomGameState()
       const compressedStateString = 'some compressed base64'
-      getValueMock.mockResolvedValue(JSON.stringify(gameState))
+      getValueMock.mockResolvedValue(JSON.stringify(dehydrateGameState(gameState)))
       compressStringMock.mockReturnValue(compressedStateString)
 
       await mutateGameState(gameState, (state) => {
-        state.players = JSON.parse(JSON.stringify(state.players))
+        state.players[0] = {...state.players[0]}
       })
 
       expect(compressStringMock).not.toHaveBeenCalled()
@@ -195,7 +197,7 @@ describe('gameState', () => {
     ])('should not throw if game state is valid', ({ mutation }) => {
       const gameState = getRandomGameState()
       mutation(gameState)
-      expect(() => validateGameState(gameState)).not.toThrow()
+      expect(() => validateGameState(dehydrateGameState(gameState))).not.toThrow()
     })
 
     it.each([
@@ -222,7 +224,7 @@ describe('gameState', () => {
         mutation: (state: GameState) => {
           state.pendingAction = {
             action: chance.pickone(Object.values(Actions)),
-            pendingPlayers: [],
+            pendingPlayers: new Set(),
             claimConfirmed: false
           }
         },
@@ -231,7 +233,7 @@ describe('gameState', () => {
       {
         mutation: (state: GameState) => {
           state.pendingBlock = {
-            pendingPlayers: [],
+            pendingPlayers: new Set(),
             sourcePlayer: chance.pickone(state.players).name,
             claimedInfluence: chance.pickone(Object.values(Influences))
           }
@@ -241,7 +243,7 @@ describe('gameState', () => {
     ])('should throw $error', async ({ mutation, error }) => {
       const gameState = getRandomGameState()
       mutation(gameState)
-      expect(() => validateGameState(gameState)).toThrow(error)
+      expect(() => validateGameState(dehydrateGameState(gameState))).toThrow(error)
     })
   })
 
