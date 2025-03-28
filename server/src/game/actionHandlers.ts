@@ -3,7 +3,7 @@ import { GameMutationInputError } from "../utilities/errors"
 import { ActionAttributes, Actions, AiPersonality, EventMessages, GameSettings, GameState, InfluenceAttributes, Influences, Responses } from "../../../shared/types/game"
 import { getGameState, getPublicGameState, logEvent, mutateGameState } from "../utilities/gameState"
 import { generateRoomId } from "../utilities/identifiers"
-import { addClaimedInfluence, addPlayerToGame, addUnclaimedInfluence, createNewGame, grudgeSizes, holdGrudge, humanOpponentsRemain, killPlayerInfluence, moveTurnToNextPlayer, processPendingAction, promptPlayerToLoseInfluence, removeClaimedInfluence, removePlayerFromGame, resetGame, revealAndReplaceInfluence, startGame } from "./logic"
+import { addClaimedInfluence, addPlayerToGame, addUnclaimedInfluence, createNewGame, grudgeSizes, holdGrudge, humanOpponentsRemain, killPlayerInfluence, moveTurnToNextPlayer, processPendingAction, promptPlayerToLoseInfluence, removeClaimedInfluence, removePlayerFromGame, resetGame, revealAndReplaceInfluence, startGame, addSpectatorToGame } from "./logic"
 import { canPlayerChooseAction, canPlayerChooseActionChallengeResponse, canPlayerChooseActionResponse, canPlayerChooseBlockChallengeResponse, canPlayerChooseBlockResponse } from '../../../shared/game/logic'
 import { decideAction, decideActionChallengeResponse, decideActionResponse, decideBlockChallengeResponse, decideBlockResponse, decideInfluencesToLose } from './ai'
 
@@ -17,11 +17,22 @@ const getPlayerInRoom = (gameState: GameState, playerId: string) => {
   return player
 }
 
+const getUserInRoom = (gameState: GameState, playerId: string) => {
+  const player = gameState.players.find(({ id }) => id === playerId)
+  const spectator = gameState.spectators.find(({ id }) => id === playerId)
+
+  if (!player && !spectator) {
+    throw new GameMutationInputError('User not in game')
+  }
+
+  return { player, spectator, isPlayer: !!player, isSpectator: !!spectator }
+}
+
 export const getGameStateHandler = async ({ roomId, playerId }: {
   roomId: string
   playerId: string
 }) => {
-  return { roomId, playerId }
+    return { roomId, playerId }
 }
 
 export const createGameHandler = async ({ playerId, playerName, settings }: {
@@ -36,14 +47,16 @@ export const createGameHandler = async ({ playerId, playerName, settings }: {
   return { roomId, playerId }
 }
 
-export const joinGameHandler = async ({ roomId, playerId, playerName }: {
+export const joinGameHandler = async ({ roomId, playerId, playerName, isSpectator }: {
   roomId: string
   playerId: string
   playerName: string
+  isSpectator?: boolean
 }) => {
   const gameState = await getGameState(roomId)
 
   const player = gameState.players.find((player) => player.id === playerId)
+  const spectator = gameState.spectators.find((spectator) => spectator.id === playerId)
 
   if (player) {
     if (player.name.toUpperCase() !== playerName.toUpperCase()) {
@@ -62,23 +75,40 @@ export const joinGameHandler = async ({ roomId, playerId, playerName }: {
         ]
       })
     }
+  } else if (spectator) {
+    if (spectator.name.toUpperCase() !== playerName.toUpperCase()) {
+      await mutateGameState(gameState, (state) => {
+        const oldSpectator = state.spectators.find((spectator) => spectator.id === playerId)
+        if (!oldSpectator) {
+          throw new GameMutationInputError('Unable to find spectator')
+        }
+        state.spectators = [
+          ...state.spectators.filter(({ id }) => id !== playerId),
+          { ...oldSpectator, name: playerName }
+        ]
+      })
+    }
   } else {
     await mutateGameState(gameState, (state) => {
-      if (state.players.length >= 6) {
-        throw new GameMutationInputError(`Room ${roomId} is full`)
-      }
+      if (isSpectator) {
+        addSpectatorToGame({ state, playerId, playerName })
+      } else {
+        if (state.players.length >= 6) {
+          throw new GameMutationInputError(`Room ${roomId} is full`)
+        }
 
-      if (state.isStarted) {
-        throw new GameMutationInputError('Game has already started')
-      }
+        if (state.isStarted) {
+          throw new GameMutationInputError('Game has already started')
+        }
 
-      if (state.players.some((existingPlayer) =>
-        existingPlayer.name.toUpperCase() === playerName.toUpperCase()
-      )) {
-        throw new GameMutationInputError(`Room ${roomId} already has player named ${playerName}`)
-      }
+        if (state.players.some((existingPlayer) =>
+          existingPlayer.name.toUpperCase() === playerName.toUpperCase()
+        )) {
+          throw new GameMutationInputError(`Room ${roomId} already has player named ${playerName}`)
+        }
 
-      addPlayerToGame({ state, playerId, playerName })
+        addPlayerToGame({ state, playerId, playerName })
+      }
     })
   }
 
@@ -138,13 +168,18 @@ export const removeFromGameHandler = async ({ roomId, playerId, playerName }: {
   }
 
   const playerToRemove = gameState.players.find((player) => player.name === playerName)
+  const spectatorToRemove = gameState.spectators.find((spectator) => spectator.name === playerName)
 
-  if (!playerToRemove) {
-    throw new GameMutationInputError('Player is not in the room')
+  if (!playerToRemove && !spectatorToRemove) {
+    throw new GameMutationInputError('User is not in the room')
   }
 
   await mutateGameState(gameState, (state) => {
-    removePlayerFromGame(state, playerName)
+    if (playerToRemove) {
+      removePlayerFromGame(state, playerName)
+    } else if (spectatorToRemove) {
+      state.spectators = state.spectators.filter(s => s.name !== playerName)
+    }
   })
 
   return { roomId, playerId }

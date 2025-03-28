@@ -49,6 +49,7 @@ export const dehydrateGameState = (hydrated: GameState) : DehydratedGameState =>
   deck: hydrated.deck,
   settings: hydrated.settings,
   availablePlayerColors: hydrated.availablePlayerColors,
+  spectators: hydrated.spectators,
   players: hydrated.players.map((player) => ({
     ...player,
     claimedInfluences: [...player.claimedInfluences],
@@ -59,6 +60,7 @@ export const dehydrateGameState = (hydrated: GameState) : DehydratedGameState =>
 export const dehydratePublicGameState = (hydrated: PublicGameState) : DehydratedPublicGameState => ({
   ...dehydrateCommonGameState(hydrated),
   deckCount: hydrated.deckCount,
+  spectators: hydrated.spectators,
   players: hydrated.players.map((player) => ({
     ...player,
     claimedInfluences: [...player.claimedInfluences],
@@ -70,6 +72,9 @@ export const dehydratePublicGameState = (hydrated: PublicGameState) : Dehydrated
       claimedInfluences: [...hydrated.selfPlayer.claimedInfluences],
       unclaimedInfluences: [...hydrated.selfPlayer.unclaimedInfluences]
     }
+  }),
+  ...(hydrated.isSpectator && {
+    isSpectator: hydrated.isSpectator
   }),
 })
 
@@ -118,6 +123,7 @@ export const rehydrateGameState = (dehydrated: DehydratedGameState): GameState =
     deck: dehydrated.deck,
     settings: dehydrated.settings,
     availablePlayerColors: dehydrated.availablePlayerColors,
+    spectators: dehydrated.spectators,
     players: dehydrated.players.map((player) => ({
       ...player,
       claimedInfluences: new Set(player.claimedInfluences),
@@ -129,6 +135,7 @@ export const rehydrateGameState = (dehydrated: DehydratedGameState): GameState =
 export const rehydratePublicGameState = (dehydrated: DehydratedPublicGameState): PublicGameState => ({
   ...rehydrateCommonGameState(dehydrated),
   deckCount: dehydrated.deckCount,
+  spectators: dehydrated.spectators,
   players: dehydrated.players.map((player) => ({
     ...player,
     claimedInfluences: new Set(player.claimedInfluences),
@@ -140,5 +147,8 @@ export const rehydratePublicGameState = (dehydrated: DehydratedPublicGameState):
       claimedInfluences: new Set(dehydrated.selfPlayer.claimedInfluences),
       unclaimedInfluences: new Set(dehydrated.selfPlayer.unclaimedInfluences)
     }
+  }),
+  ...(dehydrated.isSpectator && {
+    isSpectator: dehydrated.isSpectator
   }),
 })

@@ -115,9 +115,6 @@ const eventHandlers: {
         const playerName: string = req.body.playerName.trim()
         const isSpectator: boolean = req.body.isSpectator
         return { roomId, playerId, playerName, isSpectator }
-        return { roomId, playerId, playerName }
-        const isSpectator: boolean = req.body.isSpectator
-        return { roomId, playerId, playerName, isSpectator }
       },
       validator: validateExpressBody
     },
